@@ -2,6 +2,7 @@ package com.coolweather.android;
 
 import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +48,7 @@ public class ChooseAreaFragment extends Fragment {
     private int currentLevel;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savadInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.choose_area, container, false);
         titleText = (TextView) view.findViewById(R.id.title_text);
         backButton = (Button) view.findViewById(R.id.back_button);
@@ -69,6 +70,12 @@ public class ChooseAreaFragment extends Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     queryCounties();
+                }else if (currentLevel == LEVEL_COUNTY){
+                    String weatherId = countyList.get(position).getWeatherId();
+                    Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -105,7 +112,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCities() {
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
-        cityList=DataSupport.where("provinceid=?",String.valueOf(selectedProvince.getId())).find(City.class);
+        cityList=DataSupport.where("provinceId=?",String.valueOf(selectedProvince.getId())).find(City.class);
         if (cityList.size()>0){
             dataList.clear();
             for (City city:cityList){
@@ -123,7 +130,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryCounties(){
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
-        countyList = DataSupport.where("cityid=?",String.valueOf(selectedCity.getId())).find(County.class);
+        countyList = DataSupport.where("cityId=?",String.valueOf(selectedCity.getId())).find(County.class);
         if (countyList.size()>0){
             dataList.clear();
             for (County county:countyList){
@@ -160,7 +167,7 @@ public class ChooseAreaFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            closeProgressDiolog();
+                            closeProgressDialog();
                             if ("province".equals(type)){
                                 queryProvinces();
                             }else if ("city".equals(type)){
@@ -178,7 +185,7 @@ public class ChooseAreaFragment extends Fragment {
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        closeProgressDiolog();
+                        closeProgressDialog();
                         Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -186,11 +193,6 @@ public class ChooseAreaFragment extends Fragment {
         });
     }
 
-    private void closeProgressDiolog() {
-        if (progressDialog!=null){
-            progressDialog.dismiss();
-        }
-    }
 
     private void showProgressDialog() {
         if (progressDialog == null){
@@ -199,5 +201,10 @@ public class ChooseAreaFragment extends Fragment {
             progressDialog.setCanceledOnTouchOutside(false);
         }
         progressDialog.show();
+    }
+    private void closeProgressDialog() {
+        if (progressDialog !=null){
+            progressDialog.dismiss();
+        }
     }
 }
